@@ -1,0 +1,30 @@
+name:                auth
+version:             0.0.0
+homepage:            https://github.com/hrls/auth#readme
+author:              hrls
+maintainer:          viktor.kharitonovich@gmail.com
+copyright:           2017 hrls
+category:            Web
+
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - bytestring
+  - text
+  - containers
+  - stm
+  - http-client
+  - http-client-tls
+  - authenticate-oauth
+  - aeson
+  - jose
+  - http-types
+  - scotty
+  - warp
+
+executables:
+  auth:
+    source-dirs:      src
+    main:             Main.hs
