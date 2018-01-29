@@ -26,11 +26,11 @@ import Twitter.Auth
 
 type CredentialCache = TVar (Map Token Credential)
 
-signinHandler :: CredentialCache -> ActionM ()
-signinHandler cache = do
+signinHandler :: (ApiKey, ApiSecret) -> CredentialCache -> ActionM ()
+signinHandler keySecret cache = do
     originHostMb <- header "Host"
     let originCallback = (\h -> "http://" ++ (LT.unpack h) ++ "/callback") <$> originHostMb
-    (creds, url) <- liftIO $ obtainRequestToken originCallback
+    (creds, url) <- liftIO $ obtainRequestToken keySecret originCallback
     case oauthToken creds of
         Just token -> do
             liftIO $ atomically $ modifyTVar cache (Map.insert token creds)
@@ -48,8 +48,8 @@ instance ToJSON AuthResponse where
     toJSON (AuthResponse token secret) = object ["token" .= token, "secret" .= secret]
 
 
-callbackHadler :: CredentialCache -> ActionM ()
-callbackHadler cache = do
+callbackHadler :: (ApiKey, ApiSecret) -> CredentialCache -> ActionM ()
+callbackHadler keySecret cache = do
     token <- param "oauth_token"
     verifier <- param "oauth_verifier"
 
@@ -62,25 +62,17 @@ callbackHadler cache = do
     case storedCreds of
         Nothing -> status notFound404
         Just creds -> do
-            accessToken <- liftIO $ requestToAccess creds verifier
+            accessToken <- liftIO $ requestToAccess keySecret creds verifier
             liftIO $ print accessToken
             let token  = BS.unpack <$> lookup "oauth_token" (unCredential accessToken)
                 secret = BS.unpack <$> lookup "oauth_token_secret" (unCredential accessToken)
                 authResponseMb = AuthResponse <$> token <*> secret
             json authResponseMb
 
-tw_main :: IO ()
-tw_main = do
+tw_main :: String -> String -> IO ()
+tw_main apiKey apiSecret = do
     cache <- newTVarIO Map.empty
-    scotty 8080 $ do
+    scotty 5000 $ do
         get "/"         $ redirect "signin"
-        get "/signin"   $ signinHandler cache
-        get "/callback" $ callbackHadler cache
-        get "/main"     $ text "main page"
-        get "/inspect"  $ inspect
-
-inspect :: ActionM ()
-inspect = do
-    hs <- headers
-    liftIO $ forM_ hs $ \(h, v) -> (LT.putStrLn $ h <> " : " <> v)
-    return ()
+        get "/signin"   $ signinHandler  (apiKey, apiSecret) cache
+        get "/callback" $ callbackHadler (apiKey, apiSecret) cache

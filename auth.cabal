@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 165d10b82ff8778cc839dd7cc76589da8c03815ed096549f6f1e7f3a6eb978bf
+-- hash: b07e6ae285fea95b83bbe47910d3dc4b2e780623e095aff377b69ff3ef40bb1e
 
 name:           auth
 version:        0.0.0
@@ -10,7 +10,7 @@ category:       Web
 homepage:       https://github.com/hrls/auth#readme
 author:         hrls
 maintainer:     viktor.kharitonovich@gmail.com
-copyright:      2017 hrls
+copyright:      2018 hrls
 build-type:     Simple
 cabal-version:  >= 1.10
 
@@ -38,6 +38,5 @@ executable auth
   other-modules:
       Twitter.Api
       Twitter.Auth
-      Utils
       Paths_auth
   default-language: Haskell2010
