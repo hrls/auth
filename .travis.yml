@@ -1,0 +1,10 @@
+sudo: required
+
+language: haskell
+
+ghc:
+  - "8.0.2"
+  - "8.2.2"
+
+services:
+  - docker
