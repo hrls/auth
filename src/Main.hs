@@ -1,18 +1,30 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import System.Environment (lookupEnv)
-import Network.HTTP.Client.TLS
+import System.Environment         (lookupEnv)
+import Network.HTTP.Client.TLS    (newTlsManager)
+import Control.Monad.Trans.Reader (runReaderT)
+import Web.Scotty                 (scotty, get, notFound, redirect)
 
-import Twitter.Api (tw_main)
+import Twitter
 
 main :: IO ()
 main = do
     putStrLn "auth server"
 
-    tlsManager <- newTlsManager
-    setGlobalManager tlsManager
+    Just apiKey    <- lookupEnv "TWITTER_API_KEY"
+    Just apiSecret <- lookupEnv "TWITTER_API_SECRET"
+    cache          <- mkCache
+    tlsManager     <- newTlsManager
 
-    Just token  <- lookupEnv "TWITTER_API_KEY"
-    Just secret <- lookupEnv "TWITTER_API_SECRET"
+    let appEnv = AppEnv {
+        tokenAndSecret = (apiKey, apiSecret),
+        credsCache     = cache,
+        httpManager    = tlsManager
+    }
 
-    tw_main token secret
+    scotty 5000 $ do
+        get "/signin"   $ runReaderT signinHandler  appEnv
+        get "/callback" $ runReaderT callbackHadler appEnv
+        notFound        $ redirect "/signin"
+
