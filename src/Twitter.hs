@@ -63,7 +63,7 @@ signinHandler = do
         Just token -> do
             cache <- asks credsCache
             lift $ liftAndCatchIO $ atomically $ modifyTVar cache (Map.insert token tmp)
-            lift $ addHeader "Location" (LT.pack $ authorizeUrl modSrvOAuth tmp) >> status found302
+            lift $ addHeader "Location" (LT.pack $ authorizeUrl modSrvOAuth tmp) >> status seeOther303
         Nothing -> do
             lift $ status serviceUnavailable503 -- todo: check twitter response and do something
 
